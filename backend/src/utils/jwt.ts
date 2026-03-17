@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import jwt from 'jsonwebtoken';
 
 export interface JWTPayload {

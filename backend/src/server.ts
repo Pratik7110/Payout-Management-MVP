@@ -9,6 +9,7 @@ import { swaggerSpec } from './config/swagger';
 import authRoutes from './routes/auth';
 import vendorRoutes from './routes/vendors';
 import payoutRoutes from './routes/payouts';
+import seedRoutes from './routes/seed';
 import { errorHandler } from './middleware/errorHandler';
 import logger from './utils/logger';
 
@@ -50,6 +51,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 app.use('/api/auth', authRoutes);
 app.use('/api/vendors', vendorRoutes);
 app.use('/api/payouts', payoutRoutes);
+app.use('/api/seed', seedRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
