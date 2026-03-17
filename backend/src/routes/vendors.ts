@@ -22,10 +22,32 @@ router.get(
 router.post(
   '/',
   [
-    body('name').trim().notEmpty().withMessage('Vendor name is required'),
-    body('upi_id').optional().trim(),
-    body('bank_account').optional().trim(),
-    body('ifsc').optional().trim(),
+    body('name')
+      .trim()
+      .notEmpty()
+      .withMessage('Vendor name is required')
+      .isLength({ min: 2, max: 100 })
+      .withMessage('Vendor name must be between 2 and 100 characters')
+      .matches(/^[a-zA-Z0-9\s\-&.,()]+$/)
+      .withMessage('Vendor name contains invalid characters'),
+    body('upi_id')
+      .optional()
+      .trim()
+      .if((value) => value && value.length > 0)
+      .matches(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+$/)
+      .withMessage('UPI ID must be in format: username@bank (e.g., vendor@upi)'),
+    body('bank_account')
+      .optional()
+      .trim()
+      .if((value) => value && value.length > 0)
+      .matches(/^\d{10,18}$/)
+      .withMessage('Bank account must be 10-18 digits'),
+    body('ifsc')
+      .optional()
+      .trim()
+      .if((value) => value && value.length > 0)
+      .matches(/^[A-Z]{4}0[A-Z0-9]{6}$/)
+      .withMessage('IFSC code must be 11 characters (e.g., HDFC0001234)'),
   ],
   asyncHandler(async (req: Request, res: Response) => {
     const errors = validationResult(req);
@@ -44,9 +66,9 @@ router.post(
 
     const vendor = new Vendor({
       name,
-      upi_id,
-      bank_account,
-      ifsc,
+      upi_id: upi_id || undefined,
+      bank_account: bank_account || undefined,
+      ifsc: ifsc || undefined,
       is_active: true,
     });
 
