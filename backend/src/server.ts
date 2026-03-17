@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import connectDB from './config/database';
 import authRoutes from './routes/auth';
 import vendorRoutes from './routes/vendors';
+import payoutRoutes from './routes/payouts';
 import { errorHandler } from './middleware/errorHandler';
 
 dotenv.config();
@@ -24,6 +25,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/vendors', vendorRoutes);
+app.use('/api/payouts', payoutRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
