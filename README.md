@@ -2,6 +2,21 @@
 
 A full-stack payout management system with role-based access control (RBAC) for OPS and FINANCE teams. This MVP demonstrates a complete workflow for managing vendor payouts with proper authorization, audit trails, and status transitions.
 
+## 🚀 Live Demo
+
+- **Frontend**: [https://payout-management-mvp.vercel.app](https://payout-management-mvp.vercel.app)
+- **Backend API**: [https://payout-management-mvp.onrender.com](https://payout-management-mvp.onrender.com)
+- **API Documentation**: [https://payout-management-mvp.onrender.com/api-docs](https://payout-management-mvp.onrender.com/api-docs)
+
+### Test Credentials
+
+| Role | Email | Password |
+|------|-------|----------|
+| OPS | ops@demo.com | ops123 |
+| FINANCE | finance@demo.com | fin123 |
+
+> **Note**: First request to backend may take 30-60 seconds (free tier cold start on Render)
+
 ## Tech Stack
 
 - **Frontend**: Next.js 14+ (App Router), TypeScript, Tailwind CSS, Axios
@@ -115,6 +130,8 @@ Visit `http://localhost:3000` in your browser.
 |------|-------|----------|
 | OPS | ops@demo.com | ops123 |
 | FINANCE | finance@demo.com | fin123 |
+
+> **Production Note**: To seed the production database, make a POST request to `https://payout-management-mvp.onrender.com/api/seed`
 
 ## API Endpoints
 
