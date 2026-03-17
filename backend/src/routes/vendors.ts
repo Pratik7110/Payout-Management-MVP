@@ -9,7 +9,13 @@ const router = Router();
 // Apply auth middleware to all vendor routes
 router.use(authMiddleware);
 
-// GET /api/vendors - List all vendors
+/**
+ * @route   GET /api/vendors
+ * @desc    Get all active vendors
+ * @access  Private
+ * @security bearerAuth
+ * @returns {array} Array of vendor objects
+ */
 router.get(
   '/',
   asyncHandler(async (req: Request, res: Response) => {
@@ -18,7 +24,17 @@ router.get(
   })
 );
 
-// POST /api/vendors - Create vendor
+/**
+ * @route   POST /api/vendors
+ * @desc    Create a new vendor
+ * @access  Private
+ * @security bearerAuth
+ * @param   {string} name - Vendor name (required)
+ * @param   {string} upi_id - UPI ID (optional)
+ * @param   {string} bank_account - Bank account number (optional)
+ * @param   {string} ifsc - IFSC code (optional)
+ * @returns {object} Created vendor object
+ */
 router.post(
   '/',
   [

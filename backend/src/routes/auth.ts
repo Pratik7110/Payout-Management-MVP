@@ -3,9 +3,18 @@ import { body, validationResult } from 'express-validator';
 import User from '../models/User';
 import { generateToken } from '../utils/jwt';
 import { asyncHandler } from '../middleware/errorHandler';
+import logger from '../utils/logger';
 
 const router = Router();
 
+/**
+ * @route   POST /api/auth/login
+ * @desc    Login user with email and password
+ * @access  Public
+ * @param   {string} email - User email
+ * @param   {string} password - User password
+ * @returns {object} JWT token and user info
+ */
 router.post(
   '/login',
   [
@@ -15,6 +24,7 @@ router.post(
   asyncHandler(async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      logger.warn('Login validation error', { errors: errors.array() });
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -22,11 +32,13 @@ router.post(
 
     const user = await User.findOne({ email });
     if (!user) {
+      logger.warn('Login failed: user not found', { email });
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
+      logger.warn('Login failed: invalid password', { email });
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
@@ -35,6 +47,8 @@ router.post(
       email: user.email,
       role: user.role,
     });
+
+    logger.info('User logged in successfully', { email, role: user.role });
 
     res.json({
       token,

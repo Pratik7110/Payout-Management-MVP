@@ -6,6 +6,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { useFormSubmit } from '@/hooks/useFormSubmit';
+import toast from 'react-hot-toast';
 
 export default function NewVendorPage() {
   const [formData, setFormData] = useState({
@@ -15,8 +17,11 @@ export default function NewVendorPage() {
     ifsc: '',
   });
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { submit, isSubmitting } = useFormSubmit({
+    successMessage: 'Vendor created successfully!',
+    onSuccess: () => router.push('/vendors'),
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -66,21 +71,14 @@ export default function NewVendorPage() {
       return;
     }
 
-    try {
-      setIsLoading(true);
+    await submit(async () => {
       await api.post('/vendors', {
         name: formData.name.trim(),
         upi_id: formData.upi_id.trim() || undefined,
         bank_account: formData.bank_account.trim() || undefined,
         ifsc: formData.ifsc.trim() || undefined,
       });
-
-      router.push('/vendors');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create vendor');
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   return (
@@ -109,6 +107,7 @@ export default function NewVendorPage() {
                   placeholder="Enter vendor name"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
+                  aria-label="Vendor name"
                 />
                 <p className="text-xs text-gray-500 mt-1">2-100 characters, alphanumeric and basic punctuation only</p>
               </div>
@@ -125,6 +124,7 @@ export default function NewVendorPage() {
                   onChange={handleChange}
                   placeholder="e.g., vendor@upi"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="UPI ID"
                 />
                 <p className="text-xs text-gray-500 mt-1">Format: username@bank (e.g., vendor@upi)</p>
               </div>
@@ -141,6 +141,7 @@ export default function NewVendorPage() {
                   onChange={handleChange}
                   placeholder="e.g., 1234567890"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Bank account number"
                 />
                 <p className="text-xs text-gray-500 mt-1">10-18 digits only</p>
               </div>
@@ -157,6 +158,7 @@ export default function NewVendorPage() {
                   onChange={handleChange}
                   placeholder="e.g., HDFC0001234"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="IFSC code"
                 />
                 <p className="text-xs text-gray-500 mt-1">11 characters: 4 letters, 0, then 6 alphanumeric (e.g., HDFC0001234)</p>
               </div>
@@ -179,10 +181,11 @@ export default function NewVendorPage() {
               <div className="flex gap-4">
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                   className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-busy={isSubmitting}
                 >
-                  {isLoading ? 'Creating...' : 'Create Vendor'}
+                  {isSubmitting ? 'Creating...' : 'Create Vendor'}
                 </button>
                 <Link
                   href="/vendors"

@@ -5,6 +5,8 @@ import { Layout } from '@/components/Layout';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { TableSkeleton } from '@/components/LoadingSkeleton';
+import toast from 'react-hot-toast';
 
 interface Vendor {
   _id: string;
@@ -19,7 +21,6 @@ interface Vendor {
 export default function VendorsPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchVendors();
@@ -28,11 +29,10 @@ export default function VendorsPage() {
   const fetchVendors = async () => {
     try {
       setIsLoading(true);
-      setError('');
       const response = await api.get('/vendors');
       setVendors(response.data);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to fetch vendors');
+      toast.error(err.response?.data?.error || 'Failed to fetch vendors');
     } finally {
       setIsLoading(false);
     }
@@ -56,19 +56,8 @@ export default function VendorsPage() {
             </Link>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {error}
-            </div>
-          )}
-
           {/* Loading State */}
-          {isLoading && (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-          )}
+          {isLoading && <TableSkeleton />}
 
           {/* Vendors Table */}
           {!isLoading && vendors.length > 0 && (
