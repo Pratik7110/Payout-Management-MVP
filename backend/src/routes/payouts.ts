@@ -116,4 +116,122 @@ router.get(
   })
 );
 
+// POST /api/payouts/:id/submit - Submit payout (OPS only)
+router.post(
+  '/:id/submit',
+  requireRole('OPS'),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const payout = await Payout.findById(id);
+    if (!payout) {
+      return res.status(404).json({ error: 'Payout not found' });
+    }
+
+    // Validate status transition
+    if (payout.status !== 'Draft') {
+      return res.status(400).json({
+        error: `Cannot submit payout with status '${payout.status}'. Only Draft payouts can be submitted.`,
+      });
+    }
+
+    // Update status
+    payout.status = 'Submitted';
+    await payout.save();
+
+    // Create audit entry
+    await PayoutAudit.create({
+      payout_id: payout._id,
+      action: 'SUBMITTED',
+      performed_by: req.user!.userId,
+      performed_by_email: req.user!.email,
+    });
+
+    res.json(payout);
+  })
+);
+
+// POST /api/payouts/:id/approve - Approve payout (FINANCE only)
+router.post(
+  '/:id/approve',
+  requireRole('FINANCE'),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const payout = await Payout.findById(id);
+    if (!payout) {
+      return res.status(404).json({ error: 'Payout not found' });
+    }
+
+    // Validate status transition
+    if (payout.status !== 'Submitted') {
+      return res.status(400).json({
+        error: `Cannot approve payout with status '${payout.status}'. Only Submitted payouts can be approved.`,
+      });
+    }
+
+    // Update status
+    payout.status = 'Approved';
+    await payout.save();
+
+    // Create audit entry
+    await PayoutAudit.create({
+      payout_id: payout._id,
+      action: 'APPROVED',
+      performed_by: req.user!.userId,
+      performed_by_email: req.user!.email,
+    });
+
+    res.json(payout);
+  })
+);
+
+// POST /api/payouts/:id/reject - Reject payout (FINANCE only)
+router.post(
+  '/:id/reject',
+  requireRole('FINANCE'),
+  [
+    body('decision_reason')
+      .trim()
+      .notEmpty()
+      .withMessage('Decision reason is required for rejection'),
+  ],
+  asyncHandler(async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { id } = req.params;
+    const { decision_reason } = req.body;
+
+    const payout = await Payout.findById(id);
+    if (!payout) {
+      return res.status(404).json({ error: 'Payout not found' });
+    }
+
+    // Validate status transition
+    if (payout.status !== 'Submitted') {
+      return res.status(400).json({
+        error: `Cannot reject payout with status '${payout.status}'. Only Submitted payouts can be rejected.`,
+      });
+    }
+
+    // Update status and reason
+    payout.status = 'Rejected';
+    payout.decision_reason = decision_reason;
+    await payout.save();
+
+    // Create audit entry
+    await PayoutAudit.create({
+      payout_id: payout._id,
+      action: 'REJECTED',
+      performed_by: req.user!.userId,
+      performed_by_email: req.user!.email,
+    });
+
+    res.json(payout);
+  })
+);
+
 export default router;
